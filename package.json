@@ -1,0 +1,17 @@
+{
+  "name": "kh-scheduler",
+  "version": "1.0.0",
+  "description": "Schedule of assignments",
+  "main": "kh-scheduler.js",
+  "repository": "https://github.com/pauljohnberry/kh-scheduler.git",
+  "author": "Paul Berry",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "commander": "^2.15.0",
+    "inquirer": "^5.1.0",
+    "mongoose": "^5.0.10"
+  },
+  "preferGlobal": true,
+  "bin": "./kh-scheduler.js"
+}
