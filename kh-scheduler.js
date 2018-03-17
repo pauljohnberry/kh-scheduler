@@ -6,11 +6,9 @@ const db = require('./db');
 const { prompt } = require('inquirer'); 
 
 // Require worker.js file and extract controller functions using JS destructuring assignment
-const { addWorker, getWorker } = require('./worker');
-const { addTimeOff, getTimeOff } = require('./time-off');
-const { addRole, getRole } = require('./role');
-const { addSchedule, getSchedule } = require('./scheduler');
-
+const { addWorker, getWorker, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./worker');
+const { newSchedule, getCurrentSchedule } = require('./scheduler');
+const { addRole, listRoles } = require('./role');
 const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./questions'); 
 
 program
@@ -18,60 +16,70 @@ program
   .description('Schedule Generator');
 
 program
-  .command('addWorker')
-  .alias('aw')
-  .description('Add a worker')
+  .command('role-add')
+  .alias('ra')
+  .description('add a role')
+  .action(() => {
+    prompt(roleQuestions).then(answers => addRole(answers));
+  });
+
+program
+  .command('role-list')
+  .alias('rl')
+  .description('get the full list of roles')
+  .action(() => {
+    listRoles();
+  });
+
+program
+  .command('worker-add')
+  .alias('wa')
+  .description('add a worker')
   .action(() => {
     prompt(workerQuestions).then(answers => addWorker(answers));
   });
 
 program
-  .command('getWorker <name>')
-  .alias('gw')
-  .description('Get worker')
-  .action(name => getWorker(name));
+  .command('worker-find <name>')
+  .alias('wf')
+  .description('get worker by name')
+  .action((name) => getWorker(name));
 
 program
-  .command('addTimeOff')
-  .alias('at')
-  .description('Add time off')
+  .command('worker-list')
+  .alias('wl')
+  .description('get the full worker list')
+  .action(() => listWorkers());
+
+program
+  .command('schedule-new')
+  .alias('sn')
+  .description('create a new schedule')
   .action(() => {
-    prompt(timeoffQuestions).then(answers => addTimeOff(answers));
+    newSchedule();
   });
 
 program
-  .command('getTimeOff <name>')
-  .alias('gt')
-  .description('Get time off')
-  .action(name => getTimeOff(name));
+  .command('schedule-current')
+  .alias('sc')
+  .description('get the current schedule')
+  .action(name => getCurrentSchedule());
 
 program
-.command('addSchedule')
-.alias('as')
-.description('Add schedule')
-.action(() => {
-  prompt(scheduleQuestions).then(answers => addSchedule(answers));
-});
+  .command('worker-addrole <workerid>')
+  .alias('war')
+  .description('set the workers roles')
+  .action((id) => {
+    prompt(roleQuestions).then((answers) => setWorkerRole(id, answers));
+  });
 
 program
-.command('getSchedule <name>')
-.alias('gs')
-.description('Get schedule')
-.action(name => getSchedule(name));
-
-program
-.command('addRole')
-.alias('ar')
-.description('Add role')
-.action(() => {
-  prompt(roleQuestions).then(answers => addRole(answers));
-});
-
-program
-.command('getRole <name>')
-.alias('gr')
-.description('Get role')
-.action(name => getRole(name));
+  .command('worker-timeoff <workerid>')
+  .alias('wto')
+  .description('set the workers time off')
+  .action((id) => {
+    prompt(roleQuestions).then((answers) => setWorkerTimeOff(id, answers));
+  });
 
 // Assert that a VALID command is provided 
 if (!process.argv.slice(2).length || !/[arudl]/.test(process.argv.slice(2))) {

@@ -1,20 +1,19 @@
 const mongoose = require('mongoose'); // An Object-Document Mapper for Node.js
 const assert = require('assert'); // N.B: Assert module comes bundled with Node.js.
+const roleSchema = require('./models/role');
 
 // Converts value to lowercase
 function toLower(v) {
   return v.toLowerCase();
 };
 
-// Define a role Schema
-const roleSchema = mongoose.Schema({
-  firstname: { type: String, set: toLower },
-  lastname: { type: String, set: toLower },
-  role: { type: String, set: toLower }
-});
+// // Define a role Schema
+// const roleSchema = mongoose.Schema({
+//   role: { type: String, set: toLower }
+// });
 
-// Define model as an interface with the database
-const Role = mongoose.model('Role', roleSchema);
+// // Define model as an interface with the database
+// const Role = mongoose.model('Role', roleSchema);
 
 /**
  * @function  [addRole]
@@ -29,13 +28,11 @@ const addRole = (role) => {
 };
 
 /**
- * @function  [getRole]
+ * @function  [listRoles]
  * @returns {Json} roles
  */
-const getRole = (name) => {
-  // Define search criteria. The search here is case-insensitive and inexact.
-  const search = new RegExp(name, 'i');
-  Role.find({$or: [{firstname: search }, {lastname: search }]})
+const listRoles = () => {
+  Role.find()
   .exec((err, role) => {
     assert.equal(null, err);
     console.info(role);
@@ -45,4 +42,4 @@ const getRole = (name) => {
 };
 
 // Export all methods
-module.exports = {  addRole, getRole };
+module.exports = {  addRole, listRoles };

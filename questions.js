@@ -18,6 +18,11 @@ const workerQuestions = [
       type : 'input',
       name : 'email',
       message : 'Enter email address ...'
+    },
+    {
+      type : 'input',
+      name : 'type',
+      message : 'Enter the roles (role1,role2) ...'
     }
   ];
   
@@ -65,17 +70,7 @@ const workerQuestions = [
   const roleQuestions = [
     {
       type : 'input',
-      name : 'firstname',
-      message : 'Enter firstname ...'
-    },
-    {
-      type : 'input',
-      name : 'lastname',
-      message : 'Enter lastname ...'
-    },
-    {
-      type : 'input',
-      name : 'role',
+      name : 'type',
       message : 'Enter a role ...'
     }
   ];
