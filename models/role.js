@@ -1,15 +1,11 @@
-const mongoose = require('mongoose');
+const db = require('../helpers/db');
+const sf = require('../helpers/string-functions');
 
-// Converts value to lowercase
-function toLower(v) {
-    return v.toLowerCase();
-};
-  
 // Define a role Schema
-const roleSchema = mongoose.Schema({
-    role: { type: String, set: toLower }
+const schema = db.mongoose.Schema({
+    role: { type: String, set: sf.toLower }
   });
 
-const Role = mongoose.model('Role', roleSchema);
+const role = db.mongoose.model('Role', schema);
 
-module.exports = { Role };
+module.exports = { role, schema };

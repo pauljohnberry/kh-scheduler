@@ -8,7 +8,21 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/kh-scheduler.js"
-        }
+            "program": "${workspaceFolder}/scheduler.js",
+            "autoAttachChildProcesses": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Test Harness",
+            "program": "${workspaceRoot}/test-harness.js",
+            "stopOnEntry": true
+        },
+        {
+			"type": "node",
+			"request": "attach",
+			"name": "Attach to kh-scheduler.js",
+            "processId": "${command:PickProcess}"
+		}
     ]
 }

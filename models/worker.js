@@ -1,22 +1,18 @@
-const mongoose = require('mongoose');
-const roleSchema = require('./role');
-const timeoffSchema = require('./timeoff');
+const db = require('../helpers/db');
+const rm = require('./role');
+const tom = require('./timeoff');
+const sf = require('../helpers/string-functions');
 
-// Converts value to lowercase
-function toLower(v) {
-    return v.toLowerCase();
-};
-  
 // Define a worker Schema
-const workerSchema = mongoose.Schema({
-    firstname: { type: String, set: toLower },
-    lastname: { type: String, set: toLower },
-    phone: { type: String, set: toLower },
-    email: { type: String, set: toLower },
-    roles: [roleSchema],
-    timeoff: [timeoffSchema],
+const schema = db.mongoose.Schema({
+    firstname: { type: String, set: sf.toLower },
+    lastname: { type: String, set: sf.toLower },
+    phone: { type: String, set: sf.toLower },
+    email: { type: String, set: sf.toLower },
+    roles: [rm.schema],
+    timeoff: [tom.schema],
   });
 
-const Worker = mongoose.model('Worker', workerSchema);
+const worker = db.mongoose.model('Worker', schema);
 
-module.exports = { Worker };
+module.exports = { worker, schema };

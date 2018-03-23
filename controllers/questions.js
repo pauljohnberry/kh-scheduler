@@ -1,30 +1,39 @@
-const workerQuestions = [
-    {
-      type : 'input',
-      name : 'firstname',
-      message : 'Enter firstname ...'
-    },
-    {
-      type : 'input',
-      name : 'lastname',
-      message : 'Enter lastname ...'
-    },
-    {
-      type : 'input',
-      name : 'phone',
-      message : 'Enter phone number ...'
-    },
-    {
-      type : 'input',
-      name : 'email',
-      message : 'Enter email address ...'
-    },
-    {
-      type : 'input',
-      name : 'type',
-      message : 'Enter the roles (role1,role2) ...'
-    }
-  ];
+const workerQuestions = function(roles) {
+  console.log(roles)
+  return [
+      {
+        type : 'input',
+        name : 'firstname',
+        message : 'Enter firstname ...'
+      },
+      {
+        type : 'input',
+        name : 'lastname',
+        message : 'Enter lastname ...'
+      },
+      {
+        type : 'input',
+        name : 'phone',
+        message : 'Enter phone number ...'
+      },
+      {
+        type : 'input',
+        name : 'email',
+        message : 'Enter email address ...'
+      },
+      {
+        type : 'checkbox',
+        name : 'roles',
+        message : 'Select the roles ...',
+        choices: roles,
+        validate: function(answer) {
+          if (answer.length < 1) {
+            return 'You must choose at least one role.';
+          }
+          return true;
+        }
+      }
+    ]};
   
   const timeoffQuestions = [
     {
@@ -70,7 +79,7 @@ const workerQuestions = [
   const roleQuestions = [
     {
       type : 'input',
-      name : 'type',
+      name : 'role',
       message : 'Enter a role ...'
     }
   ];

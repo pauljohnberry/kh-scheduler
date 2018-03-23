@@ -2,14 +2,16 @@
 
 // Chmod 777 kh-scheduler.js
 const program = require('commander');
-const db = require('./db');
+const db = require('./helpers/db');
 const { prompt } = require('inquirer'); 
 
 // Require worker.js file and extract controller functions using JS destructuring assignment
-const { addWorker, getWorker, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./worker');
-const { newSchedule, getCurrentSchedule } = require('./scheduler');
-const { addRole, listRoles } = require('./role');
-const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./questions'); 
+const { addWorker, getWorker, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./controllers/worker');
+const { newSchedule, getCurrentSchedule } = require('./controllers/scheduler');
+const { addRole, listRoles } = require('./controllers/role');
+const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./controllers/questions'); 
+const rm = require('./models/role');
+const sf = require('./helpers/string-functions');
 
 program
   .version('1.0.0')
@@ -36,7 +38,20 @@ program
   .alias('wa')
   .description('add a worker')
   .action(() => {
-    prompt(workerQuestions).then(answers => addWorker(answers));
+    // TODO - Replace with controller
+    rm.role.find().exec((err, results) => {
+      roles = []
+      results.forEach(r => {
+        roles.push(sf.toLower(r.role));
+      });
+      prompt(workerQuestions(roles)).then((answers) => 
+      {
+        roles = answers.roles
+        delete answers.roles
+        worker = answers
+        addWorker(worker, roles);
+      });
+    });
   });
 
 program

@@ -1,14 +1,11 @@
-const mongoose = require('mongoose');
+const db = require('../helpers/db');
 
-// Converts value to lowercase
-function toLower(v) {
-    return v.toLowerCase();
-};
-  
 // Define a timeOff Schema
-const timeoffSchema = mongoose.Schema({
+const schema = db.mongoose.Schema({
     datestart: { type: Date },
     dateend: { type: Date }
   });
 
-module.exports = { timeoffSchema };
+const timeoff = db.mongoose.model('TimeOff', schema);
+
+module.exports = { timeoff, schema };
