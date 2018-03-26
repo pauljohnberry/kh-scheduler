@@ -6,7 +6,7 @@ const db = require('./helpers/db');
 const { prompt } = require('inquirer'); 
 
 // Require worker.js file and extract controller functions using JS destructuring assignment
-const { addWorker, getWorker, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./controllers/worker');
+const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./controllers/worker');
 const { newSchedule, getCurrentSchedule } = require('./controllers/scheduler');
 const { addRole, listRoles } = require('./controllers/role');
 const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./controllers/questions'); 
@@ -18,82 +18,114 @@ program
   .description('Schedule Generator');
 
 program
-  .command('role-add')
-  .alias('ra')
+  .command('add-role')
+  .alias('ar')
   .description('add a role')
   .action(() => {
     prompt(roleQuestions).then(answers => addRole(answers));
   });
 
 program
-  .command('role-list')
-  .alias('rl')
+  .command('list-roles')
+  .alias('lr')
   .description('get the full list of roles')
-  .action(() => {
-    listRoles();
-  });
+  .action(() => listRoles().then((response) => {
+      console.info(response);
+    }));
 
 program
-  .command('worker-add')
-  .alias('wa')
+  .command('add-worker')
+  .alias('aw')
   .description('add a worker')
   .action(() => {
-    // TODO - Replace with controller
-    rm.role.find().exec((err, results) => {
-      roles = []
-      results.forEach(r => {
-        roles.push(sf.toLower(r.role));
+    var getRoles = function() {
+      return new Promise((resolve, reject) => { 
+          resolve(listRoles()); 
       });
-      prompt(workerQuestions(roles)).then((answers) => 
-      {
-        roles = answers.roles
-        delete answers.roles
-        worker = answers
-        addWorker(worker, roles);
-      });
-    });
+    };
+    
+    var qs = function(roles) {
+        //return new Promise((resolve, reject) => {
+            pfq = function (roles) { 
+                rs = []
+                roles.forEach(r => {
+                    rs.push(sf.toLower(r.role));
+                });
+                return new Promise((resolve, reject) => { 
+                    resolve(prompt(workerQuestions(rs)))
+                })
+            };
+    
+            ans = function (answers) { 
+                return new Promise((resolve, reject) => { 
+                    roles = answers.roles;
+                    delete answers.roles;
+                    resolve([answers, roles]);
+                })
+            };
+    
+            return pfq(roles).then(ans);
+        //});
+    }
+    
+    var add = function(params) { 
+        var r = params[1]
+        var w = params[0]
+        return new Promise((resolve, reject) => {
+            resolve(addWorker(w, r));
+        })
+    };
+    
+    getRoles().then(qs).then(add).then((response) => {
+        console.info(response);
+    })  
   });
 
 program
-  .command('worker-find <name>')
-  .alias('wf')
+  .command('find-worker <name>')
+  .alias('fw')
   .description('get worker by name')
-  .action((name) => getWorker(name));
+  .action((name) => getWorkersByName(name).then((response) => {
+    console.info(response);
+  }));
 
 program
-  .command('worker-list')
-  .alias('wl')
+  .command('list-workers')
+  .alias('lw')
   .description('get the full worker list')
-  .action(() => listWorkers());
+  .action(() => listWorkers().then((response) => {
+    console.info(response);
+  }));
 
 program
-  .command('schedule-new')
-  .alias('sn')
+  .command('new-schedule')
+  .alias('ns')
   .description('create a new schedule')
   .action(() => {
     newSchedule();
   });
 
 program
-  .command('schedule-current')
+  .command('current-schedule')
   .alias('sc')
   .description('get the current schedule')
   .action(name => getCurrentSchedule());
 
+  // TODO - fix up
 program
-  .command('worker-addrole <workerid>')
-  .alias('war')
+  .command('add-worker-role <workerid>')
+  .alias('awr')
   .description('set the workers roles')
   .action((id) => {
     prompt(roleQuestions).then((answers) => setWorkerRole(id, answers));
   });
 
 program
-  .command('worker-timeoff <workerid>')
-  .alias('wto')
+  .command('add-worker-timeoff <workerid>')
+  .alias('awt')
   .description('set the workers time off')
   .action((id) => {
-    prompt(roleQuestions).then((answers) => setWorkerTimeOff(id, answers));
+    prompt(timeoffQuestions).then((answers) => setWorkerTimeOff(id, answers));
   });
 
 // Assert that a VALID command is provided 

@@ -1,5 +1,4 @@
 const workerQuestions = function(roles) {
-  console.log(roles)
   return [
       {
         type : 'input',
@@ -36,16 +35,6 @@ const workerQuestions = function(roles) {
     ]};
   
   const timeoffQuestions = [
-    {
-      type : 'input',
-      name : 'firstname',
-      message : 'Enter firstname ...'
-    },
-    {
-      type : 'input',
-      name : 'lastname',
-      message : 'Enter lastname ...'
-    },
     {
       type : 'input',
       name : 'datestart',

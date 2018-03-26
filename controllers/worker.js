@@ -1,73 +1,35 @@
 const db = require('../helpers/db'); 
 const assert = require('assert'); 
-const wm = require('../models/worker');
-const rc = require('../controllers/role');
+const rc = require('../controllers/role'); 
 
+// Public functions
 /**
  * @function  [addWorker]
  * @returns {String} Status
  */
 const addWorker = (worker, roles) => {
-  rc.getRolesByName(roles).then(function (roles) {
-    worker.roles = roles;
-    db.execute(() =>
-    db.models.Worker.create(worker, (err, w) => {
-      assert.equal(null, err);
-      console.info('worker added');
-      //db.disconnect();
-    }));
+  return new Promise((resolve, reject) => {
+    rc.getRolesByName(roles).then(function (roles) {
+      worker.roles = roles;
+      resolve(db.execute(() => createWorker(worker)));
+    });
   });
 };
 
 /**
- * @function  [getWorker]
+ * @function  [getWorkersByName]
  * @returns {Json} workers
  */
-const getWorker = (name) => {
-  // Define search criteria. The search here is case-insensitive and inexact.
-  const search = new RegExp(name, 'i');
-  db.models.Worker.find({$or: [{firstname: search }, {lastname: search }]})
-    .exec((err, worker) => {
-      assert.equal(null, err);
-      console.info(worker);
-      console.info(`${worker.length} matches`);
-    });
-};
+const getWorkersByName = (name) => {
+  return db.execute(() => findWorkersByName(name));
+}
 
 /**
  * @function  [listWorkers]
  * @returns {Json} workers
  */
 const listWorkers = () => {
-  db.models.Worker.find()
-    .exec((err, worker) => {
-      assert.equal(null, err);
-      console.info(worker);
-      console.info(`${worker.length} matches`);
-    });
-};
-
-/**
- * @function  [setWorkerRole]
- * @returns {String} Status
- */
-const setWorkerRoles = (id, roles) => function() {
-  return new Promise((resolve, reject) => {
-    setWorkerRoles_workerId = id;
-    if (Array.isArray(roles))
-    {
-      roles.forEach(r => {
-        if(r.hasOwnProperty('_id')){
-          setWorkerRole(setWorkerRoles_workerId, r);
-        } 
-        else {
-          rc.getRoleByName(r).then(function (role) {
-            setWorkerRole(setWorkerRoles_workerId, role);
-          });
-        };
-      });
-    };
-  });
+  return db.execute(() => findAllWorkers());
 };
 
 /**
@@ -75,13 +37,7 @@ const setWorkerRoles = (id, roles) => function() {
  * @returns {String} Status
  */
 const setWorkerRole = (id, role) => {
-  db.models.Worker.findOne({ _id: id })
-  .exec((err, worker) => {
-    console.log(worker);
-    assert.equal(null, err);
-    worker? worker.roles.push(role) : console.info("worker not found")
-    worker.save();
-  })
+  return db.execute(() => saveWorkerRole(id, role))
 };
 
 /**
@@ -89,13 +45,89 @@ const setWorkerRole = (id, role) => {
  * @returns {String} Status
  */
 const setWorkerTimeOff = (id, timeoff) => {
-  db.models.Worker.findOne({ _id: id })
-  .exec((err, worker) => {
-    assert.equal(null, err);
-    worker? worker.roles.push(role) : console.info("worker not found")
-    worker.timeoff.push(timeoff);
-  })
+  return db.execute(() => saveWorkerTimeOff(id, timeoff))
+};
+
+// Private functions
+function createWorker(worker) {
+  return new Promise((resolve, reject) => { 
+    db.models.Worker.create(worker, (err, w) => {
+      if (err === null) {
+        resolve('worker added');
+      }
+      else {
+        reject(false);
+      }
+    });
+  });
+}
+
+function findAllWorkers() {
+  return new Promise((resolve, reject) => { 
+    db.models.Worker.find().exec((err, workers) => {
+      if (err === null) {
+        if (workers.length < 1) {
+          resolve("No workers found");
+        }
+        resolve(workers + "\r\n\r\n" + workers.length + " workers found");
+      }
+      else {
+        reject(false);
+      }
+    });
+  });
+}
+
+function saveWorkerRole(id, role) {
+  i = id;
+  r = role;
+  return new Promise((resolve, reject) => { 
+    db.models.Worker.findOne({ _id: i }).exec((err, worker) => {
+      if (err === null) {
+        worker? worker.roles.push(r) : resolve("worker not found")
+        worker.save();
+        resolve('worker role added');
+      }
+      else {
+        reject(false);
+      }
+    });
+  });
+}
+
+function saveWorkerTimeOff(id, timeoff) {
+  i = id;
+  t = timeoff;
+  return new Promise((resolve, reject) => { 
+    db.models.Worker.findOne({ _id: i }).exec((err, worker) => {
+      if (err === null) {
+        worker? worker.timeoff.push(t) : resolve("worker not found")
+        worker.save();
+        resolve('worker time off added');
+      }
+      else {
+        reject(false);
+      }
+    });
+  });
+};
+
+function findWorkersByName(name) {
+  const search = new RegExp(name, 'i');
+  return new Promise((resolve, reject) => { 
+    db.models.Worker.find({$or: [{firstname: search }, {lastname: search }]}).exec((err, workers) => {
+      if (err === null) {
+        if (workers.length < 1) {
+          resolve("No matches found");
+        }
+        resolve(workers + "\r\n\r\n" + workers.length + " matches found");
+      }
+      else {
+        reject(false);
+      }
+    });
+  });
 };
 
 // Export all methods
-module.exports = {  addWorker, getWorker, listWorkers, setWorkerRole, setWorkerTimeOff };
+module.exports = { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOff };

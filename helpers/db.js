@@ -42,20 +42,17 @@ disconnect = function () {
 models = mongoose.models;
 
 execute = function (func) {
-    var prom1 = function() { return new Promise((resolve, reject) => { 
+    var createDb = function() { return new Promise((resolve, reject) => { 
         connect();
         resolve(true);
     })};
 
-    // TODO - work out this promise chaining!!!!!
-    var prom2 = func;
-
-    var prom3 = function() { return new Promise((resolve, reject) => { 
+    var disconnectDb = function(response) { return new Promise((resolve, reject) => { 
         disconnect();
-        resolve(true);
+        resolve(response);
     })};
 
-    return prom1().then(prom2).then(prom3);
+    return createDb().then(func).then(disconnectDb);
 };
 
 

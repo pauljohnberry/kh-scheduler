@@ -16,7 +16,8 @@
             "request": "launch",
             "name": "Launch Test Harness",
             "program": "${workspaceRoot}/test-harness.js",
-            "stopOnEntry": true
+            "stopOnEntry": true,
+            "console": "integratedTerminal"
         },
         {
 			"type": "node",

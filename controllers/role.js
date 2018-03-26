@@ -1,18 +1,13 @@
 const db = require('../helpers/db'); 
 const assert = require('assert'); 
-const rm = require('../models/role');
 
+// Public
 /**
  * @function  [addRole]
  * @returns {String} Status
  */
 const addRole = (role) => {
-  db.connect();
-  db.models.Role.create(role, (err) => {
-    assert.equal(null, err);
-    console.info('New role added');
-    db.disconnect();
-  });
+  db.execute(() => createRole(role));
 };
 
 /**
@@ -20,22 +15,15 @@ const addRole = (role) => {
  * @returns {Json} roles
  */
 const listRoles = () => {
-  db.execute(() =>
-    db.models.Role.find()
-    .exec((err, role) => {
-      assert.equal(null, err);
-      console.info(role);
-      console.info(`${role.length} matches`);
-    })
-  );
-};
+  return db.execute(() => getAllRoles());
+}
 
 /**
  * @function  [getRole]
  * @returns {Json} role
  */
 const getRole = (id) => {
-  rm.role.findOne({ _id: id })
+  db.models.Role.findOne({ _id: id })
   .exec((err, role) => {
     assert.equal(null, err);
     db.mongoose.disconnect(); 
@@ -48,7 +36,7 @@ const getRole = (id) => {
  */
 const getRoleByName = (name) => {
   return new Promise((resolve, reject) => { 
-    db.mongoose.models.Role.findOne({ role: name })
+    db.models.Role.findOne({ role: name })
     .exec((err, role) => {
       assert.equal(null, err);
       db.mongoose.disconnect()
@@ -77,6 +65,32 @@ const getRolesByName = (names) => {
   });
 };
 
+// Private
+function getAllRoles() {
+  return new Promise((resolve, reject) => { 
+    db.models.Role.find().exec((err, roles) => {
+      if (err === null) {
+        resolve(roles);
+      }
+      else {
+        reject(false);
+      }
+    });
+  })
+};
+
+function createRole(role) {
+  return new Promise((resolve, reject) => { 
+    db.models.Role.create(role, (err, w) => {
+      if (err === null) {
+        resolve('New role added');
+      }
+      else {
+        reject(false);
+      }
+    });
+  })
+} 
 
 // Export all methods
 module.exports = {  addRole, listRoles, getRole, getRoleByName, getRolesByName };
