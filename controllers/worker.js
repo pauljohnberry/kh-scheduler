@@ -7,12 +7,7 @@ const assert = require('assert');
  * @returns {String} Status
  */
 const addWorker = (worker, roles) => {
-  return new Promise((resolve, reject) => {
-    db.rm.role.find({ role: { $in: roles } }).exec((err, response) => {
-      worker.roles = response;
-      resolve(db.execute(() => createWorker(worker)));
-    });
-  });
+  return db.execute(() => addNewWorkerWithRoles(worker, roles));
 };
 
 /**
@@ -121,6 +116,17 @@ function saveWorkerRoles(id, roles) {
         else {
           reject(false);
         }
+      })
+    });
+  });
+}
+
+function addNewWorkerWithRoles(worker, roles) {
+  return new Promise((resolve, reject) => {
+    db.rm.role.find({ role: { $in: roles } }).exec((err, response) => {
+      worker.roles = response;
+      createWorker(worker).then((response) => {
+        resolve(response);
       })
     });
   });

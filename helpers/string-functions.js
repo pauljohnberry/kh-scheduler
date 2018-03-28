@@ -1,6 +1,11 @@
 // Converts value to lowercase
 const toLower = function toLower(v) {
-    return v.toLowerCase();
+    if (v != null ) {
+        return v.toLowerCase();
+    }
+    else {
+        return v;
+    }
 };
   
 module.exports = { toLower };

@@ -1,10 +1,8 @@
 
 const scheduler = require('./controllers/scheduler');
 const { addRole, listRoles } = require('./controllers/role');
-const { addWorkerRoleUsingCommander } = require('./controllers/commander');
-const { prompt } = require('inquirer'); 
+const { addRoleUsingTerminal, addWorkerUsingTerminal, addWorkerRoleUsingTerminal, addTimeOffUsingTerminal } = require('./controllers/terminal');
 const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./controllers/questions'); 
-const sf = require('./helpers/string-functions');
 const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./controllers/worker');
 
 //scheduler.newSchedule();
@@ -26,8 +24,11 @@ const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOf
 // scheduler.getCurrentSchedule().then((response) => {
 //     console.log(response);
 // });
+addRoleUsingTerminal();
 
-addWorkerRoleUsingCommander(i);
+
+//addWorkerUsingTerminal();
+// addWorkerRoleUsingTerminal(i);
 
 // var getRoles = function() {
 //     return new Promise((resolve, reject) => { 

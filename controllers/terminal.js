@@ -1,14 +1,14 @@
-
 const { prompt } = require('inquirer');
-const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('../controllers/questions'); 
-const { setWorkerRoles, getWorkerRoles } = require('../controllers/worker'); 
-const { listRoles } = require('../controllers/role'); 
+const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions, addRoleQuestions } = require('../controllers/questions'); 
+const { setWorkerRoles, getWorkerRoles, addWorker, setWorkerTimeOff, listWorkers, getWorkersByName } = require('../controllers/worker'); 
+const { listRoles, addRole } = require('../controllers/role'); 
+const { newSchedule, getCurrentSchedule  } = require('../controllers/scheduler'); 
 const sf = require('../helpers/string-functions');
 
 /**
- * @function  [addWorkerRoleUsingCommander]
+ * @function  [addWorkerRoleUsingTerminal]
  */
-addWorkerRoleUsingCommander = function (workerId) {
+addWorkerRoleUsingTerminal = function (workerId) {
 
     var gwr = function (allRoles) {
       wid = workerId;
@@ -66,9 +66,9 @@ addWorkerRoleUsingCommander = function (workerId) {
 }
 
 /**
- * @function  [addWorkerUsingCommander]
+ * @function  [addWorkerUsingTerminal]
  */
-addWorkerUsingCommander = function () {
+addWorkerUsingTerminal = function () {
     var getRoles = function () {
         return new Promise((resolve, reject) => {
             resolve(listRoles());
@@ -101,7 +101,9 @@ addWorkerUsingCommander = function () {
         var r = params[1]
         var w = params[0]
         return new Promise((resolve, reject) => {
-            resolve(addWorker(w, r));
+            addWorker(w, r).then((response) => {
+                resolve(response);
+            });
         })
     };
 
@@ -110,5 +112,62 @@ addWorkerUsingCommander = function () {
     })
 }
 
+addRoleUsingTerminal = function () {
+    prompt(addRoleQuestions).then(answers => {
+        addRole(answers).then((response) => {
+            console.log(response);
+        });
+    });
+}
+
+addTimeOffUsingTerminal = function (id) {
+    prompt(timeoffQuestions).then((answers) => {
+        setWorkerTimeOff(id, answers).then((response) => {
+            console.log(response);
+        });
+    });
+}
+
+newScheduleUsingTerminal = function () {
+    newSchedule().then((response) => {
+        console.info(response);
+    });
+}
+
+listWorkersUsingTerminal = function () {
+    listWorkers().then((response) => {
+        console.info(response);
+    });
+}
+
+findWorkersUsingTerminal = function (name) {
+    getWorkersByName(name).then((response) => {
+        console.info(response);
+    });
+}
+
+listRolesUsingTerminal = function () {
+    listRoles().then((response) => {
+        console.info(response);
+    });
+}
+
+
+getCurrentScheduleUsingTerminal = function () {
+    getCurrentSchedule().then((response) => {
+        console.info(response);
+    });
+}
+
 // Export all methods
-module.exports = { addWorkerUsingCommander, addWorkerRoleUsingCommander };
+module.exports = { 
+    addWorkerUsingTerminal, 
+    addWorkerRoleUsingTerminal, 
+    addRoleUsingTerminal, 
+    addTimeOffUsingTerminal, 
+    newScheduleUsingTerminal, 
+    listWorkersUsingTerminal, 
+    findWorkersUsingTerminal, 
+    listRoles, 
+    getCurrentScheduleUsingTerminal 
+};

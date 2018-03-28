@@ -7,7 +7,7 @@ const assert = require('assert');
  * @returns {String} Status
  */
 const addRole = (role) => {
-  db.execute(() => createRole(role));
+  return db.execute(() => createRole(role));
 };
 
 /**

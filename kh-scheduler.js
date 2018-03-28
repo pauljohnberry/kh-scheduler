@@ -2,17 +2,18 @@
 
 // Chmod 777 kh-scheduler.js
 const program = require('commander');
-const db = require('./helpers/db');
-const { prompt } = require('inquirer'); 
 
-// Require worker.js file and extract controller functions using JS destructuring assignment
-const { addWorkerUsingCommander } = require('./controllers/commander');
-const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./controllers/worker');
-const { newSchedule, getCurrentSchedule } = require('./controllers/scheduler');
-const { addRole, listRoles } = require('./controllers/role');
-const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./controllers/questions'); 
-
-const sf = require('./helpers/string-functions');
+const { 
+  addWorkerUsingTerminal, 
+  addWorkerRoleUsingTerminal, 
+  addRoleUsingTerminal, 
+  addTimeOffUsingTerminal, 
+  newScheduleUsingTerminal, 
+  listWorkersUsingTerminal, 
+  findWorkersUsingTerminal, 
+  listRoles, 
+  getCurrentScheduleUsingTerminal 
+} = require('./controllers/terminal');
 
 program
   .version('1.0.0')
@@ -23,69 +24,69 @@ program
   .alias('ar')
   .description('add a role')
   .action(() => {
-    prompt(roleQuestions).then(answers => addRole(answers));
+    addRoleUsingTerminal();
   });
 
 program
   .command('list-roles')
   .alias('lr')
   .description('get the full list of roles')
-  .action(() => listRoles().then((response) => {
-      console.info(response);
-    }));
+  .action(() => {
+    listRolesUsingTerminal();
+  });
 
 program
   .command('add-worker')
   .alias('aw')
   .description('add a worker')
   .action(() => {
-    addWorkerUsingCommander();
+    addWorkerUsingTerminal();
   });
 
 program
   .command('find-worker <name>')
   .alias('fw')
   .description('get worker by name')
-  .action((name) => getWorkersByName(name).then((response) => {
-    console.info(response);
-  }));
+  .action((name) => {
+    findWorkersUsingTerminal(name);
+   });
 
 program
   .command('list-workers')
   .alias('lw')
   .description('get the full worker list')
-  .action(() => listWorkers().then((response) => {
-    console.info(response);
-  }));
+  .action(() => {
+     listWorkersUsingTerminal();
+    });
 
 program
   .command('new-schedule')
   .alias('ns')
   .description('create a new schedule')
   .action(() => {
-    newSchedule();
+    newScheduleUsingTerminal();
   });
 
 program
   .command('current-schedule')
   .alias('cs')
   .description('get the current schedule')
-  .action(name => getCurrentSchedule().then((response) => {
-    console.info(response);
-  }));
+  .action(() => {
+    getCurrentScheduleUsingTerminal();
+  });
 
 program
   .command('set-worker-roles <workerid>')
   .alias('swr')
   .description('set the workers roles')
-  .action(id => console.info(addWorkerRoleUsingCommander(id)));
+  .action(id => addWorkerRoleUsingTerminal(id));
 
 program
   .command('add-worker-timeoff <workerid>')
   .alias('awt')
   .description('set the workers time off')
   .action((id) => {
-    prompt(timeoffQuestions).then((answers) => setWorkerTimeOff(id, answers));
+    addTimeOffUsingTerminal(id);
   });
 
 // // Assert that a VALID command is provided 

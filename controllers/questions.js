@@ -80,5 +80,13 @@ const workerQuestions = function(roles) {
           }
         }
       ]};
+
+  const addRoleQuestions = [
+        {
+          type : 'input',
+          name : 'role',
+          message : 'Add role ...'
+        }
+      ];
   
-  module.exports = {  workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions };
+  module.exports = {  workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions, addRoleQuestions };
