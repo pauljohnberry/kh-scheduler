@@ -23,10 +23,13 @@ const listRoles = () => {
  * @returns {Json} role
  */
 const getRole = (id) => {
-  db.models.Role.findOne({ _id: id })
-  .exec((err, role) => {
-    assert.equal(null, err);
-    db.mongoose.disconnect(); 
+  return db.execute(() => {
+    return new Promise((resolve, reject) => { 
+      db.rm.role.findOne({ _id: id })
+      .exec((err, role) => {
+        resolve(role);
+      });
+    });
   });
 };
 
@@ -35,12 +38,12 @@ const getRole = (id) => {
  * @returns {Json} role
  */
 const getRoleByName = (name) => {
-  return new Promise((resolve, reject) => { 
-    db.models.Role.findOne({ role: name })
-    .exec((err, role) => {
-      assert.equal(null, err);
-      db.mongoose.disconnect()
-      resolve(role);
+  return db.execute(() => {
+    return new Promise((resolve, reject) => { 
+      db.rm.role.findOne({ role: name })
+      .exec((err, role) => {
+        resolve(role);
+      });
     });
   });
 };
@@ -50,25 +53,27 @@ const getRoleByName = (name) => {
  * @returns {Json} roles
  */
 const getRolesByName = (names) => {
-  return new Promise((resolve, reject) => { 
-    rolesToReturn = []
-    db.connect()
-    db.models.Role.find({ role: { $in: names } })
-    .exec((err, roles) => {
-      assert.equal(null, err);
-      roles.forEach(r => {
-        rolesToReturn.push(r);
-      });
-      db.disconnect(); 
-      resolve(rolesToReturn);
-    })
+  return db.execute(() => {
+    return new Promise((resolve, reject) => { 
+      rolesToReturn = []
+
+      db.rm.role.find({ role: { $in: names } })
+      .exec((err, roles) => {
+        assert.equal(null, err);
+        roles.forEach(r => {
+          rolesToReturn.push(r);
+        });
+
+        resolve(rolesToReturn);
+      })
+    });
   });
 };
 
 // Private
 function getAllRoles() {
   return new Promise((resolve, reject) => { 
-    db.models.Role.find().exec((err, roles) => {
+    db.rm.role.find().exec((err, roles) => {
       if (err === null) {
         resolve(roles);
       }
@@ -81,7 +86,7 @@ function getAllRoles() {
 
 function createRole(role) {
   return new Promise((resolve, reject) => { 
-    db.models.Role.create(role, (err, w) => {
+    db.rm.role.create(role, (err, w) => {
       if (err === null) {
         resolve('New role added');
       }

@@ -1,10 +1,10 @@
-const db = require('../helpers/db');
+const mongoose = require('mongoose');
 const rm = require('./role');
 const tom = require('./timeoff');
 const sf = require('../helpers/string-functions');
 
 // Define a worker Schema
-const schema = db.mongoose.Schema({
+const schema = mongoose.Schema({
     firstname: { type: String, set: sf.toLower },
     lastname: { type: String, set: sf.toLower },
     phone: { type: String, set: sf.toLower },
@@ -13,6 +13,6 @@ const schema = db.mongoose.Schema({
     timeoff: [tom.schema],
   });
 
-const worker = db.mongoose.model('Worker', schema);
+const worker = mongoose.model('Worker', schema);
 
 module.exports = { worker, schema };

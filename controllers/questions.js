@@ -65,12 +65,20 @@ const workerQuestions = function(roles) {
     }
   ];
   
-  const roleQuestions = [
-    {
-      type : 'input',
-      name : 'role',
-      message : 'Enter a role ...'
-    }
-  ];
+  const roleQuestions = function(roles) {
+    return [
+        {
+          type : 'checkbox',
+          name : 'roles',
+          message : 'Select the roles ...',
+          choices: roles,
+          validate: function(answer) {
+            if (answer.length < 1) {
+              return 'You must choose at least one role.';
+            }
+            return true;
+          }
+        }
+      ]};
   
   module.exports = {  workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions };

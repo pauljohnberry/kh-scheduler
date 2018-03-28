@@ -1,6 +1,5 @@
 const db = require('../helpers/db'); 
 const assert = require('assert'); 
-const rc = require('../controllers/role'); 
 
 // Public functions
 /**
@@ -9,8 +8,8 @@ const rc = require('../controllers/role');
  */
 const addWorker = (worker, roles) => {
   return new Promise((resolve, reject) => {
-    rc.getRolesByName(roles).then(function (roles) {
-      worker.roles = roles;
+    db.rm.role.find({ role: { $in: roles } }).exec((err, response) => {
+      worker.roles = response;
       resolve(db.execute(() => createWorker(worker)));
     });
   });
@@ -22,6 +21,14 @@ const addWorker = (worker, roles) => {
  */
 const getWorkersByName = (name) => {
   return db.execute(() => findWorkersByName(name));
+}
+
+/**
+ * @function  [getWorkersRoles]
+ * @returns {Json} roles
+ */
+const getWorkerRoles = (id) => {
+  return db.execute(() => findRolesForWorker(id));
 }
 
 /**
@@ -41,6 +48,14 @@ const setWorkerRole = (id, role) => {
 };
 
 /**
+ * @function  [setWorkerRoles]
+ * @returns {String} Status
+ */
+const setWorkerRoles = (id, roles) => {
+  return db.execute(() => saveWorkerRoles(id, roles))
+};
+
+/**
  * @function  [setWorkerTimeOff]
  * @returns {String} Status
  */
@@ -51,7 +66,7 @@ const setWorkerTimeOff = (id, timeoff) => {
 // Private functions
 function createWorker(worker) {
   return new Promise((resolve, reject) => { 
-    db.models.Worker.create(worker, (err, w) => {
+    db.wm.worker.create(worker, (err, w) => {
       if (err === null) {
         resolve('worker added');
       }
@@ -64,7 +79,7 @@ function createWorker(worker) {
 
 function findAllWorkers() {
   return new Promise((resolve, reject) => { 
-    db.models.Worker.find().exec((err, workers) => {
+    db.wm.worker.find().exec((err, workers) => {
       if (err === null) {
         if (workers.length < 1) {
           resolve("No workers found");
@@ -78,11 +93,44 @@ function findAllWorkers() {
   });
 }
 
+function findRolesForWorker(id) {
+  return new Promise((resolve, reject) => { 
+    db.wm.worker.find({_id: id}).exec((err, worker) => {
+      if (err === null) {
+        if (worker.length < 1) {
+          resolve("Worker not found");
+        }
+        resolve(worker[0].roles);
+      }
+      else {
+        reject(false);
+      }
+    });
+  });
+}
+
+function saveWorkerRoles(id, roles) {
+  i = id;
+  rs = roles;
+  return new Promise((resolve, reject) => {
+    db.rm.role.find({ role: { $in: roles } }).exec((err, response) => {
+      db.wm.worker.findOneAndUpdate({ _id: i}, { roles: response }).exec((err, worker) => {
+        if (err === null) {
+          resolve('worker roles updated');
+        }
+        else {
+          reject(false);
+        }
+      })
+    });
+  });
+}
+
 function saveWorkerRole(id, role) {
   i = id;
   r = role;
   return new Promise((resolve, reject) => { 
-    db.models.Worker.findOne({ _id: i }).exec((err, worker) => {
+    db.wm.worker.findOne({ _id: i }).exec((err, worker) => {
       if (err === null) {
         worker? worker.roles.push(r) : resolve("worker not found")
         worker.save();
@@ -99,7 +147,7 @@ function saveWorkerTimeOff(id, timeoff) {
   i = id;
   t = timeoff;
   return new Promise((resolve, reject) => { 
-    db.models.Worker.findOne({ _id: i }).exec((err, worker) => {
+    db.wm.worker.findOne({ _id: i }).exec((err, worker) => {
       if (err === null) {
         worker? worker.timeoff.push(t) : resolve("worker not found")
         worker.save();
@@ -115,7 +163,7 @@ function saveWorkerTimeOff(id, timeoff) {
 function findWorkersByName(name) {
   const search = new RegExp(name, 'i');
   return new Promise((resolve, reject) => { 
-    db.models.Worker.find({$or: [{firstname: search }, {lastname: search }]}).exec((err, workers) => {
+    db.wm.worker.find({$or: [{firstname: search }, {lastname: search }]}).exec((err, workers) => {
       if (err === null) {
         if (workers.length < 1) {
           resolve("No matches found");
@@ -130,4 +178,4 @@ function findWorkersByName(name) {
 };
 
 // Export all methods
-module.exports = { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOff };
+module.exports = { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOff, setWorkerRoles, getWorkerRoles };

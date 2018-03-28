@@ -1,11 +1,11 @@
-const db = require('../helpers/db');
+const mongoose = require('mongoose');
 
 // Define a timeOff Schema
-const schema = db.mongoose.Schema({
+const schema = mongoose.Schema({
     datestart: { type: Date },
     dateend: { type: Date }
   });
 
-const timeoff = db.mongoose.model('TimeOff', schema);
+const timeoff = mongoose.model('TimeOff', schema);
 
 module.exports = { timeoff, schema };

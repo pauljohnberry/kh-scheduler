@@ -1,6 +1,7 @@
 
 const scheduler = require('./controllers/scheduler');
 const { addRole, listRoles } = require('./controllers/role');
+const { addWorkerRoleUsingCommander } = require('./controllers/commander');
 const { prompt } = require('inquirer'); 
 const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./controllers/questions'); 
 const sf = require('./helpers/string-functions');
@@ -16,11 +17,17 @@ const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOf
 // roles = ['sound']
 // addWorker(w, roles);
 
-var i = "5ab88354a710a3c68a37575a"
-var t = new Object();
-t.datestart = "2018-03-20";
-t.dateend = "2018-03-21";
-setWorkerTimeOff(i, t);
+ var i = "5ab85befb458f3b61d0a92e1"
+// var t = new Object();
+// t.datestart = "2018-03-20";
+// t.dateend = "2018-03-21";
+// setWorkerTimeOff(i, t);
+
+// scheduler.getCurrentSchedule().then((response) => {
+//     console.log(response);
+// });
+
+addWorkerRoleUsingCommander(i);
 
 // var getRoles = function() {
 //     return new Promise((resolve, reject) => { 

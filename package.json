@@ -12,7 +12,7 @@
     "inquirer": "^5.1.0",
     "intersect": "^1.0.1",
     "moment-weekdaysin": "^1.0.1",
-    "mongoose": "^5.0.10"
+    "mongoose": "^5.0.12"
   },
   "preferGlobal": true,
   "bin": "./kh-scheduler.js"
