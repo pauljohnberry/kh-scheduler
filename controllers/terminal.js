@@ -154,7 +154,13 @@ listRolesUsingTerminal = function () {
 
 getCurrentScheduleUsingTerminal = function () {
     getCurrentSchedule().then((response) => {
-        console.info(response);
+        if (response === false)
+        {
+            console.info("No schedule found")
+        }
+        else {
+            console.info(response);
+        }
     });
 }
 
