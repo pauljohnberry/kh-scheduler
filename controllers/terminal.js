@@ -46,7 +46,7 @@ addWorkerRoleUsingTerminal = function (workerId) {
                 roles = answers.roles;
                 resolve(roles);
             })
-        };5
+        };
 
         return pfq(roles).then(ans);
     }
@@ -151,7 +151,6 @@ listRolesUsingTerminal = function () {
         console.info(response);
     });
 }
-
 
 getCurrentScheduleUsingTerminal = function () {
     getCurrentSchedule().then((response) => {
