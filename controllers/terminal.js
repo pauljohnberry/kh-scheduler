@@ -159,7 +159,8 @@ getCurrentScheduleUsingTerminal = function () {
             console.info("No schedule found")
         }
         else {
-            console.info(response);
+            // TODO add schedule formatting in here ... or provide PDF output
+            console.info(JSON.stringify(response, null, 2));
         }
     });
 }
