@@ -4,6 +4,7 @@ const m = require('moment-weekdaysin');
 const intersect = require('intersect');
 const momentRange = require('moment-range');
 const moment = momentRange.extendMoment(m);
+
 // Public
 /**
  * @function  [addSchedule]
@@ -23,18 +24,6 @@ const newSchedule = () => {
     });
   }
 
-  // db.sm.schedule.find({month: month}, "items.workers._id" ).exec().then((ss) => {
-  //   workersInSchedule = [];
-  //   ss.forEach(s => {
-  //     s.items.forEach(i => {
-  //       i.workers.forEach(w => {
-  //         workersInSchedule.push(w.id);
-  //       })
-  //     })
-  //   });
-  //   resolve(workersInSchedule);
-  // });
-
   var createNewSchedule = function (noScheduleExists) {
     if (!noScheduleExists) {
       return new Promise((resolve, reject) => {
@@ -48,19 +37,23 @@ const newSchedule = () => {
         var schedule = new db.sm.schedule();
         schedule.month = scheduleDate.month();
 
-        // TODO - refactor below to promise chain
+        // TODO - continue to refactor below to non nested promise chain
         
         // find all workers
-        getWorkersIdsIncludedInSchedule(schedule.month - 1).then(getWorkersForSchedule).then((workers) => {
+        getWorkersIdsFromPastSchedules(2).then(getWorkersForSchedule).then((workers) => {
           // select roles
           var schedules = [];
-          var excludedIds = [];
+          
           db.rm.role.find().exec().then((roles) => {
             var weekdays = moment().month(schedule.month).weekdaysInMonth('Monday');
+
+            var excludedIds = [];
+
             // process week by week
             weekdays.forEach(wd => {
-              weekStart = wd;
-              weekEnd = wd.add(6, 'd');
+
+              const weekStart = wd;
+              const weekEnd = moment(weekStart, "DD-MM-YYYY").add(6, 'days');
               // loop roles
               roles.forEach(r => {
                 if (schedule.type == null) {
@@ -86,37 +79,34 @@ const newSchedule = () => {
                   }
                 }
 
-                // give priority to any one who was not included on last months schedule
+                // give priority to any one who was not included on previous schedules
                 var sortedWorkers = workers.sort(function compare(a,b) {
-                  if (a.usedOnLastSchedule < b.usedOnLastSchedule)
+                  if (a.priority < b.priority)
                     return -1;
-                  if (a.usedOnLastSchedule > b.usedOnLastSchedule)
+                  if (a.priority > b.priority)
                     return 1;
                   return 0;
                 });
 
                 // find workers assigned to the role 
-                var workersInRole = searchForWorkersInThisRole(schedule.type, sortedWorkers, excludedIds);
+                var firstWorkerInRole = getFirstWorkerInThisRole(schedule.type, sortedWorkers, excludedIds, false);
 
                 // if no more workers are available then start from the top
-                if (workersInRole.length < 1) {
-                  excludedIds = [];
-                  workersInRole = searchForWorkersInThisRole(schedule.type, workers, excludedIds);
+                if (firstWorkerInRole.length < 1) {
+                  firstWorkerInRole = getFirstWorkerInThisRole(schedule.type, workers, excludedIds, true);
                 }
 
-                if (workersInRole.length > 0) {
+                if (firstWorkerInRole.length > 0) {
                   i = 0
-                  // take first
-                  var worker = workersInRole[i];
+                  // take from array
+                  var worker = firstWorkerInRole[i];
 
                   // skip if on holiday
                   while (isOnHoliday(worker, weekStart, weekEnd)) {
-                    excludedIds.push(worker.id);
+                    excludedIds.push({ id: worker.id, role: r.role });
                     i++;
-                    worker = workersInRole[i];
+                    worker = firstWorkerInRole[i];
                   }
-
-                  // order by appear on last schedule or not
 
                   var scheduleItem = new db.sim.scheduleItem();
                   scheduleItem.datestart = weekStart;
@@ -125,12 +115,12 @@ const newSchedule = () => {
                   schedule.items.push(scheduleItem);
 
                   // make sure this user is excluded
-                  excludedIds.push(worker.id);
+                  excludedIds.push({ id: worker.id, role: r.role });
                 }
-                //}
               });
             });
 
+            // collate changes for save
             var funcs = [];
             schedules.forEach(s => {
               funcs.push(function () {
@@ -146,7 +136,6 @@ const newSchedule = () => {
             for (var i = 1; i < funcs.length; i++) {
                 promise = promise.then(funcs[i]);
             }
-
             promise.then(() => {
               resolve('schedules added');
             });
@@ -182,32 +171,83 @@ const getCurrentSchedule = () => {
 };
 
 //Private
-function searchForWorkersInThisRole(roleKey, myArray, excludedIds){
+function getFirstWorkerInThisRole(roleKey, myArray, excludedIds, enforceRole){
+  if (enforceRole == null) {
+    enforceRole = false;
+  }
+
   for (var i=0; i < myArray.length; i++) {
     worker = myArray[i];
     for (var r=0; r < worker.roles.length; r++) {
       role = worker.roles[r];
-      if (role.role === roleKey && !excludedIds.includes(worker.id)) {
+      if (role.role === roleKey && !excludedIds.find(function(exid) { 
+          if (enforceRole) {
+            return worker.id == exid.id && roleKey == exid.role;
+          }
+          else {
+            return worker.id == exid.id;
+          }
+        })) {
         return [myArray[i]];
       };
     };
   };
-
   return [];
 };
 
-function getWorkersForSchedule(workerIdsUsedOnLastSchedule) { 
+function getWorkersForSchedule(workersIdsFromPastSchedules) { 
   return new Promise((resolve, reject) => {
+    var currentMonth = moment().month();
     db.wm.worker.find().exec().then((workers) => {
       workers.forEach(w => {
-        if (workerIdsUsedOnLastSchedule.includes(w.id)) {
-          w.usedOnLastSchedule = 1;
+        if (workersIdsFromPastSchedules.length > 0) {
+          var lastScheduledWorker = workersIdsFromPastSchedules.find(function(wid) {
+            return wid.id == w.id;
+          });
+          if (lastScheduledWorker.length > 0) {
+            if (currentMonth > lastScheduledWorker.month) {
+                w.priority = lastScheduledWorker.month - currentMonth;
+            }
+            else {
+              // must be last year
+              pastMonth = (lastScheduledWorker.month - 13) * -1;
+              w.priority = pastMonth + currentMonth;
+            }
+          }
+          else {
+            w.priority = 0;
+          }
         }
         else {
-          w.usedOnLastSchedule = 0;
+          w.priority = 0;
         }
       }); 
       resolve(workers);
+    });
+  });
+}
+
+function getWorkersIdsFromPastSchedules(noOfSchedules) {
+  // TODO - have excluded ids 
+  return new Promise((resolve, reject) => {
+    var pastMonth = moment().month() - 1;
+    var workerIds = [];
+    var funcs = [];
+    var excludedIds = [];
+    for (let index = 0; index < noOfSchedules; index++) {
+      const month = JSON.parse(JSON.stringify(pastMonth));
+      funcs.push(function (excludedIds) {
+        return getWorkersIdsIncludedInSchedule(month, excludedIds)
+      });
+      pastMonth--;
+    }
+    
+    var promise = funcs[0](excludedIds);
+    for (var i = 1; i < funcs.length; i++) {
+        promise = promise.then(funcs[i]);
+    }
+    promise.then((response) => {
+      resolve(response);
     });
   });
 }
@@ -229,14 +269,16 @@ function isOnHoliday(worker, start, end) {
   return false;
 };
 
-function getWorkersIdsIncludedInSchedule(month) {
+function getWorkersIdsIncludedInSchedule(month, excludedIds) {
   return new Promise((resolve, reject) => {
     db.sm.schedule.find({month: month}, "items.workers._id" ).exec().then((ss) => {
       workersInSchedule = [];
       ss.forEach(s => {
         s.items.forEach(i => {
           i.workers.forEach(w => {
-            workersInSchedule.push(w.id);
+            if (!excludedIds.includes(w.id)) {
+              workersInSchedule.push({ id: w.id, month: month });
+            }
           })
         })
       });
@@ -252,7 +294,6 @@ function findSchedule(key, schedules) {
       return schedule;
     }
   };
-
   return null;
 };
 
