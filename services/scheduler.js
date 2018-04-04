@@ -10,24 +10,27 @@ const moment = momentRange.extendMoment(m);
  * @function  [addSchedule]
  * @returns {String} Status
  */
-const newSchedule = () => {
+const newSchedule = (monthToSchedule) => {
   var ifScheduleDoesntExist = function () {
     return new Promise((resolve, reject) => {
-        getCurrentSchedule().then((schedule) => {
-          if (schedule === false) {
-            resolve(true);
-          }
-          else {
-            resolve(false);
-          }
-        })
+      if (monthToSchedule == null) {
+        monthToSchedule = moment().add(1, 'months').month();
+      }
+      getSchedule(monthToSchedule).then((schedule) => {
+        if (schedule === false) {
+          resolve(true);
+        }
+        else {
+          resolve(false);
+        }
+      })
     });
   }
 
   var createNewSchedule = function (noScheduleExists) {
     if (!noScheduleExists) {
       return new Promise((resolve, reject) => {
-        resolve('Schedules have already been generated for this month');
+        resolve('Schedules have already been generated for next month');
       });
     }
     return db.execute(() => {
@@ -35,12 +38,12 @@ const newSchedule = () => {
 
         var scheduleDate = moment();
         var schedule = new db.sm.schedule();
-        schedule.month = scheduleDate.month();
+        schedule.month = monthToSchedule;
 
         // TODO - continue to refactor below to non nested promise chain
         
         // find all workers
-        getWorkersIdsFromPastSchedules(2).then(getWorkersForSchedule).then((workers) => {
+        getWorkersIdsFromPastSchedules(2, monthToSchedule).then(getWorkersForSchedule).then((workers) => {
           // select roles
           var schedules = [];
           
@@ -74,6 +77,7 @@ const newSchedule = () => {
                   if (s == null) {
                     schedule = new db.sm.schedule();
                     schedule.type = r.role;
+                    schedule.month = monthToSchedule;
                   }
                   else {
                     // use the found schedule
@@ -158,14 +162,34 @@ const newSchedule = () => {
 };
 
 /**
- * @function  [getSchedule]
- * @returns {Json} schedules
+ * @function  [getCurrentSchedule]
+ * @returns {Json} schedule
  */
 const getCurrentSchedule = () => {
   return db.execute(() => {
     return new Promise((resolve, reject) => { 
       var scheduleDate = moment();
       var month = scheduleDate.month();
+      db.sm.schedule.find({ month: month })
+      // .gte('startdate', Date.now)
+      // .lte('enddate', Date.now)
+      .exec((err, schedule) => {
+        if (schedule.length < 1) {
+          resolve(false);
+        }
+        resolve(schedule);
+      });
+    });
+  });
+};
+
+/**
+ * @function  [getSchedule]
+ * @returns {Json} schedule
+ */
+const getSchedule = (month) => {
+  return db.execute(() => {
+    return new Promise((resolve, reject) => { ;
       db.sm.schedule.find({ month: month })
       // .gte('startdate', Date.now)
       // .lte('enddate', Date.now)
@@ -250,23 +274,25 @@ function shuffle(array) {
   return array;
 }
 
-function getWorkersForSchedule(workersIdsFromPastSchedules) { 
+function getWorkersForSchedule(params) { 
+  var workerIdsFromPastSchedules = params.workerIds;
+  var scheduleMonth = params.scheduleMonth;
   return new Promise((resolve, reject) => {
-    var currentMonth = moment().month();
+    var thisScheduleMonth = scheduleMonth;
     db.wm.worker.find().exec().then((workers) => {
       workers.forEach(w => {
-        if (workersIdsFromPastSchedules.length > 0) {
-          var lastScheduledWorker = workersIdsFromPastSchedules.find(function(wid) {
+        if (workerIdsFromPastSchedules.length > 0) {
+          var lastScheduledWorker = workerIdsFromPastSchedules.find(function(wid) {
             return wid.id == w.id;
           });
           if (lastScheduledWorker.length > 0) {
-            if (currentMonth > lastScheduledWorker.month) {
-                w.priority = lastScheduledWorker.month - currentMonth;
+            if (thisScheduleMonth > lastScheduledWorker.month) {
+                w.priority = lastScheduledWorker.month - thisScheduleMonth;
             }
             else {
               // must be last year
               pastMonth = (lastScheduledWorker.month - 13) * -1;
-              w.priority = pastMonth + currentMonth;
+              w.priority = pastMonth + thisScheduleMonth;
             }
           }
           else {
@@ -282,10 +308,10 @@ function getWorkersForSchedule(workersIdsFromPastSchedules) {
   });
 }
 
-function getWorkersIdsFromPastSchedules(noOfSchedules) {
+function getWorkersIdsFromPastSchedules(noOfSchedules, scheduleMonth) {
   // TODO - have excluded ids 
   return new Promise((resolve, reject) => {
-    var pastMonth = moment().month() - 1;
+    var pastMonth = scheduleMonth -1;
     var workerIds = [];
     var funcs = [];
     var excludedIds = [];
@@ -302,7 +328,7 @@ function getWorkersIdsFromPastSchedules(noOfSchedules) {
         promise = promise.then(funcs[i]);
     }
     promise.then((response) => {
-      resolve(response);
+      resolve({ workerIds: response, scheduleMonth: scheduleMonth });
     });
   });
 }

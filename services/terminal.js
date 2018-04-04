@@ -128,8 +128,8 @@ addTimeOffUsingTerminal = function (id) {
     });
 }
 
-newScheduleUsingTerminal = function () {
-    newSchedule().then((response) => {
+newScheduleUsingTerminal = function (month) {
+    newSchedule(month).then((response) => {
         console.info(response);
     });
 }

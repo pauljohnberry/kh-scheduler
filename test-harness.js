@@ -26,8 +26,8 @@ const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOf
 // });
 // addRoleUsingTerminal();
 
+//newScheduleUsingTerminal(3);
 newScheduleUsingTerminal();
-
 //addWorkerUsingTerminal();
 // addWorkerRoleUsingTerminal(i);
 
