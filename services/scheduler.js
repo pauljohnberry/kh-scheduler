@@ -95,16 +95,7 @@ const newSchedule = (monthToSchedule) => {
                 });
 
                 // find workers assigned to the role 
-                var firstWorkerInRole = getFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds, 'month');
-
-                // // if no more workers are available then start from the top
-                if (firstWorkerInRole.length < 1) {
-                  firstWorkerInRole = getFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds, 'role');
-                }
-
-                if (firstWorkerInRole.length < 1) {
-                  firstWorkerInRole = getFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds, 'week');
-                }
+                var firstWorkerInRole = determineFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds);
 
                 if (firstWorkerInRole.length > 0) {
                   i = 0
@@ -113,10 +104,9 @@ const newSchedule = (monthToSchedule) => {
 
                   // skip if on holiday
                   while (isOnHoliday(worker, weekStart, weekEnd)) {
-                    firstWorkerInRoleForMonth.push(worker.id);
                     excludedIds.push({ id: worker.id, role: r.role, week: wn });
-                    i++;
-                    worker = firstWorkerInRole[i];
+                    worker = determineFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds);
+                    var worker = worker[i];
                   }
 
                   var scheduleItem = new db.sim.scheduleItem();
@@ -202,6 +192,22 @@ const getSchedule = (month) => {
     });
   });
 };
+
+function determineFirstWorkerInThisRole(keys, workers, excludedIds) {
+  // find workers assigned to the role 
+  var firstWorkerInRole = getFirstWorkerInThisRole(keys, workers, excludedIds, 'month');
+
+  // if no more workers are available then start from the top
+  if (firstWorkerInRole.length < 1) {
+    firstWorkerInRole = getFirstWorkerInThisRole(keys, workers, excludedIds, 'role');
+  }
+
+  if (firstWorkerInRole.length < 1) {
+    firstWorkerInRole = getFirstWorkerInThisRole(keys, workers, excludedIds, 'week');
+  }
+
+  return firstWorkerInRole;
+}
 
 //Private
 function getFirstWorkerInThisRole(keys, workers, excludedIds, exclusionLevel){
@@ -338,16 +344,18 @@ function getWorkersIdsFromPastSchedules(noOfSchedules, scheduleMonth) {
 // to_start: 12-02-2018
 // to_end: 20-02-2018
 function isOnHoliday(worker, start, end) {
-  if (worker.timeoff.length > 0) {
+  var onHoliday = false;
+  if (worker.timeoff != null && worker.timeoff.length > 0) {
     worker.timeoff.forEach(to => {
       var scheduleWeekRange = moment.range(start, end);
       var holidayRange = moment.range(to.datestart, to.dateend);
       if(scheduleWeekRange.overlaps(holidayRange)) {
-        return true;
+        onHoliday = true;
+        return onHoliday;
       }
     });
   }
-  return false;
+  return onHoliday;
 };
 
 function getWorkersIdsIncludedInSchedule(month, excludedIds) {
