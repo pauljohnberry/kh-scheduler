@@ -1,8 +1,8 @@
 const { prompt } = require('inquirer');
-const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions, addRoleQuestions } = require('../controllers/questions'); 
-const { setWorkerRoles, getWorkerRoles, addWorker, setWorkerTimeOff, listWorkers, getWorkersByName } = require('../controllers/worker'); 
-const { listRoles, addRole } = require('../controllers/role'); 
-const { newSchedule, getCurrentSchedule  } = require('../controllers/scheduler'); 
+const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions, addRoleQuestions } = require('../services/questions'); 
+const { setWorkerRoles, getWorkerRoles, addWorker, setWorkerTimeOff, listWorkers, getWorkersByName } = require('../services/worker'); 
+const { listRoles, addRole } = require('../services/role'); 
+const { newSchedule, getCurrentSchedule  } = require('../services/scheduler'); 
 const sf = require('../helpers/string-functions');
 
 /**

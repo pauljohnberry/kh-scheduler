@@ -1,5 +1,4 @@
 const db = require('../helpers/db'); 
-const assert = require('assert'); 
 
 // Public
 /**

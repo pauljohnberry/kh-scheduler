@@ -13,7 +13,7 @@ const {
   findWorkersUsingTerminal, 
   listRoles, 
   getCurrentScheduleUsingTerminal 
-} = require('./controllers/terminal');
+} = require('./services/terminal');
 
 program
   .version('1.0.0')

@@ -1,9 +1,9 @@
 
-const scheduler = require('./controllers/scheduler');
-const { addRole, listRoles } = require('./controllers/role');
-const { addRoleUsingTerminal, addWorkerUsingTerminal, addWorkerRoleUsingTerminal, addTimeOffUsingTerminal, newScheduleUsingTerminal } = require('./controllers/terminal');
-const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./controllers/questions'); 
-const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./controllers/worker');
+const scheduler = require('./services/scheduler');
+const { addRole, listRoles } = require('./services/role');
+const { addRoleUsingTerminal, addWorkerUsingTerminal, addWorkerRoleUsingTerminal, addTimeOffUsingTerminal, newScheduleUsingTerminal } = require('./services/terminal');
+const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions } = require('./services/questions'); 
+const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOff } = require('./services/worker');
 
 //scheduler.newSchedule();
 
