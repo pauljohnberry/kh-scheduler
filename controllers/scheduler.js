@@ -49,13 +49,15 @@ const newSchedule = () => {
 
             var excludedIds = [];
 
+            var wn = 1;
             // process week by week
             weekdays.forEach(wd => {
-
+              
               const weekStart = wd;
               const weekEnd = moment(weekStart, "DD-MM-YYYY").add(6, 'days');
               // loop roles
               roles.forEach(r => {
+
                 if (schedule.type == null) {
                   schedule.type = r.role;
                 }
@@ -89,11 +91,15 @@ const newSchedule = () => {
                 });
 
                 // find workers assigned to the role 
-                var firstWorkerInRole = getFirstWorkerInThisRole(schedule.type, sortedWorkers, excludedIds, false);
+                var firstWorkerInRole = getFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds, 'month');
 
-                // if no more workers are available then start from the top
+                // // if no more workers are available then start from the top
                 if (firstWorkerInRole.length < 1) {
-                  firstWorkerInRole = getFirstWorkerInThisRole(schedule.type, workers, excludedIds, true);
+                  firstWorkerInRole = getFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds, 'role');
+                }
+
+                if (firstWorkerInRole.length < 1) {
+                  firstWorkerInRole = getFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds, 'week');
                 }
 
                 if (firstWorkerInRole.length > 0) {
@@ -103,7 +109,8 @@ const newSchedule = () => {
 
                   // skip if on holiday
                   while (isOnHoliday(worker, weekStart, weekEnd)) {
-                    excludedIds.push({ id: worker.id, role: r.role });
+                    firstWorkerInRoleForMonth.push(worker.id);
+                    excludedIds.push({ id: worker.id, role: r.role, week: wn });
                     i++;
                     worker = firstWorkerInRole[i];
                   }
@@ -115,9 +122,11 @@ const newSchedule = () => {
                   schedule.items.push(scheduleItem);
 
                   // make sure this user is excluded
-                  excludedIds.push({ id: worker.id, role: r.role });
+                  excludedIds.push({ id: worker.id, role: r.role, week: wn });
                 }
               });
+
+              wn++;
             });
 
             // collate changes for save
@@ -171,29 +180,75 @@ const getCurrentSchedule = () => {
 };
 
 //Private
-function getFirstWorkerInThisRole(roleKey, myArray, excludedIds, enforceRole){
-  if (enforceRole == null) {
-    enforceRole = false;
-  }
-
-  for (var i=0; i < myArray.length; i++) {
-    worker = myArray[i];
+function getFirstWorkerInThisRole(keys, workers, excludedIds, exclusionLevel){
+  // randonise the order of workers
+  var shuffledWorkers = shuffle(JSON.parse(JSON.stringify(workers)));
+  var returnedWorker;
+  //workers = shuffle(workers);
+  for (var i=0; i < shuffledWorkers.length; i++) {
+    worker = shuffledWorkers[i];
+    worker.id = worker._id;
     for (var r=0; r < worker.roles.length; r++) {
       role = worker.roles[r];
-      if (role.role === roleKey && !excludedIds.find(function(exid) { 
-          if (enforceRole) {
-            return worker.id == exid.id && roleKey == exid.role;
+      if (role.role === keys.role) {
+
+
+        // if (random) {
+        //   var rnd = Math.floor(Math.random() * (shuffledWorkers.length - 1)) + 1 ;
+        //   return [shuffledWorkers[rnd]];
+        // }
+        // else {
+        if (!excludedIds.find(function(exclusion) { 
+          // get exclusions for current week
+          // if this user is in the current week then skip
+          if (worker.id == exclusion.id && exclusion.week == keys.week && exclusionLevel != 'week') {
+            return true;
           }
-          else {
-            return worker.id == exid.id;
-          }
+
+          switch (exclusionLevel) {
+            case 'month':
+              return worker.id == exclusion.id; 
+              break;
+             case 'week':
+               return worker.id == exclusion.id && exclusion.week == keys.week; 
+               break;
+            case 'role':
+              return worker.id == exclusion.id && exclusion.role == keys.role; 
+              break;
+            default:
+              return false;
+              break;
+          };
         })) {
-        return [myArray[i]];
+          returnedWorker = shuffledWorkers[i];
+        };
       };
     };
   };
-  return [];
+  if (returnedWorker == null) {
+    return [];
+  }
+  return [returnedWorker];
 };
+
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
 
 function getWorkersForSchedule(workersIdsFromPastSchedules) { 
   return new Promise((resolve, reject) => {
