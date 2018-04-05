@@ -2,8 +2,11 @@ const { prompt } = require('inquirer');
 const { workerQuestions, timeoffQuestions, scheduleQuestions, roleQuestions, addRoleQuestions } = require('../services/questions'); 
 const { setWorkerRoles, getWorkerRoles, addWorker, setWorkerTimeOff, listWorkers, getWorkersByName } = require('../services/worker'); 
 const { listRoles, addRole } = require('../services/role'); 
-const { newSchedule, getCurrentSchedule  } = require('../services/scheduler'); 
+const { exportToExcel } = require('../services/export'); 
+const { newSchedule, getCurrentSchedule, getSchedules } = require('../services/scheduler'); 
 const sf = require('../helpers/string-functions');
+const moment = require('moment');
+
 
 /**
  * @function  [addWorkerRoleUsingTerminal]
@@ -159,8 +162,28 @@ getCurrentScheduleUsingTerminal = function () {
             console.info("No schedule found")
         }
         else {
-            // TODO add schedule formatting in here ... or provide PDF output
+            // TODO add schedule formatting in here 
             console.info(JSON.stringify(response, null, 2));
+        }
+    });
+}
+
+exportSchedulesUsingTerminal = function (month) {
+    getSchedules(month).then((response) => {
+        //var m = moment().month(month).add(1, 'months');
+        var formattedMonth = moment().month(month).format('MMMM');
+        if (response === false) {
+            console.info("No schedule found");
+        }
+        else {
+            
+            // response.forEach(schedule => {
+            //     exportToExcel(schedule, schedule.type, formattedMonth);
+            // });
+
+            exportToExcel(response, formattedMonth);
+
+            console.info("Schedules exported");
         }
     });
 }
@@ -175,5 +198,6 @@ module.exports = {
     listWorkersUsingTerminal, 
     findWorkersUsingTerminal, 
     listRoles, 
-    getCurrentScheduleUsingTerminal 
+    getCurrentScheduleUsingTerminal,
+    exportSchedulesUsingTerminal
 };

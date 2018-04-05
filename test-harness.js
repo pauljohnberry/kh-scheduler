@@ -27,7 +27,10 @@ const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOf
 // addRoleUsingTerminal();
 
 //newScheduleUsingTerminal(3);
-newScheduleUsingTerminal();
+//newScheduleUsingTerminal();
+
+exportSchedulesUsingTerminal(3);
+
 //addWorkerUsingTerminal();
 // addWorkerRoleUsingTerminal(i);
 

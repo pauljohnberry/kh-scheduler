@@ -8,4 +8,9 @@ const toLower = function toLower(v) {
     }
 };
   
-module.exports = { toLower };
+const toSentenceCase = function toSentenceCase(string) 
+{
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+module.exports = { toLower, toSentenceCase };

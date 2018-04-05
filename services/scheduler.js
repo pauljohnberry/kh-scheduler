@@ -16,7 +16,7 @@ const newSchedule = (monthToSchedule) => {
       if (monthToSchedule == null) {
         monthToSchedule = moment().add(1, 'months').month();
       }
-      getSchedule(monthToSchedule).then((schedule) => {
+      getSchedules(monthToSchedule).then((schedule) => {
         if (schedule === false) {
           resolve(true);
         }
@@ -30,7 +30,7 @@ const newSchedule = (monthToSchedule) => {
   var createNewSchedule = function (noScheduleExists) {
     if (!noScheduleExists) {
       return new Promise((resolve, reject) => {
-        resolve('Schedules have already been generated for next month');
+        resolve('Schedules have already been generated');
       });
     }
     return db.execute(() => {
@@ -94,30 +94,32 @@ const newSchedule = (monthToSchedule) => {
                   return 0;
                 });
 
-                // find workers assigned to the role 
-                var firstWorkerInRole = determineFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds);
 
-                if (firstWorkerInRole.length > 0) {
-                  i = 0
-                  // take from array
-                  var worker = firstWorkerInRole[i];
+                for (let index = 0; index < r.workersneeded; index++) {
+                  // find workers assigned to the role 
+                  var firstWorkerInRole = determineFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds);
 
-                  // skip if on holiday
-                  while (isOnHoliday(worker, weekStart, weekEnd)) {
+                  if (firstWorkerInRole.length > 0) {
+                    // take from array
+                    var worker = firstWorkerInRole[0];
+  
+                    // skip if on holiday
+                    while (isOnHoliday(worker, weekStart, weekEnd)) {
+                      excludedIds.push({ id: worker.id, role: r.role, week: wn });
+                      worker = determineFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds);
+                      var worker = worker[0];
+                    }
+  
+                    var scheduleItem = new db.sim.scheduleItem();
+                    scheduleItem.datestart = weekStart;
+                    scheduleItem.dateend = weekEnd;
+                    scheduleItem.workers.push(worker);
+                    schedule.items.push(scheduleItem);
+  
+                    // make sure this user is excluded
                     excludedIds.push({ id: worker.id, role: r.role, week: wn });
-                    worker = determineFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds);
-                    var worker = worker[i];
                   }
-
-                  var scheduleItem = new db.sim.scheduleItem();
-                  scheduleItem.datestart = weekStart;
-                  scheduleItem.dateend = weekEnd;
-                  scheduleItem.workers.push(worker);
-                  schedule.items.push(scheduleItem);
-
-                  // make sure this user is excluded
-                  excludedIds.push({ id: worker.id, role: r.role, week: wn });
-                }
+                }    
               });
 
               wn++;
@@ -174,20 +176,20 @@ const getCurrentSchedule = () => {
 };
 
 /**
- * @function  [getSchedule]
- * @returns {Json} schedule
+ * @function  [getSchedules]
+ * @returns {Json} schedules
  */
-const getSchedule = (month) => {
+const getSchedules = (month) => {
   return db.execute(() => {
     return new Promise((resolve, reject) => { ;
       db.sm.schedule.find({ month: month })
       // .gte('startdate', Date.now)
       // .lte('enddate', Date.now)
-      .exec((err, schedule) => {
-        if (schedule.length < 1) {
+      .exec((err, schedules) => {
+        if (schedules.length < 1) {
           resolve(false);
         }
-        resolve(schedule);
+        resolve(schedules);
       });
     });
   });
@@ -388,4 +390,4 @@ function findSchedule(key, schedules) {
 
 
 // Export all methods
-module.exports = {  newSchedule, getCurrentSchedule };
+module.exports = {  newSchedule, getCurrentSchedule, getSchedules };

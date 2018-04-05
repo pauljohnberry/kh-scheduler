@@ -69,10 +69,18 @@ program
 
 program
   .command('current-schedule')
-  .alias('cs')
+  .alias('gcs')
   .description('get the current schedule')
   .action(() => {
     getCurrentScheduleUsingTerminal();
+  });
+
+  program
+  .command('export-schedules <month>')
+  .alias('es')
+  .description('export the schedules for a given month')
+  .action((month) => {
+    exportSchedulesUsingTerminal(month);
   });
 
 program
@@ -80,6 +88,12 @@ program
   .alias('swr')
   .description('set the workers roles')
   .action(id => addWorkerRoleUsingTerminal(id));
+
+program
+  .command('create-schedule <month>')
+  .alias('cs')
+  .description('create a new schedule for the given month')
+  .action(month => newScheduleUsingTerminal(month));
 
 program
   .command('add-worker-timeoff <workerid>')
