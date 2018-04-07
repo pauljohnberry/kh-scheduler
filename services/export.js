@@ -10,23 +10,6 @@ var groupBy = function(xs, key) {
     }, {});
   };
 
-// function duplicates(arr, prop, value) {
-//     var a = [], b = [], prev;
-    
-//     arr.sort();
-//     for ( var i = 0; i < arr.length; i++ ) {
-//         if ( (arr[i] !== prev) && arr[i][prop] == value ) {
-//             a.push(arr[i]);
-//             b.push(1);
-//         } else {
-//             b[b.length-1]++;
-//         }
-//         prev = arr[i];
-//     }
-    
-//     return b[0];
-// }
-
 function duplicates(arr, prop, value) {
     var count = 0
     arr.forEach(element => {
@@ -82,32 +65,11 @@ exportToExcel = function (json, month) {
                     }
 
                     newObj[schedName] = sf.toSentenceCase(worker.firstname) + ' ' + sf.toSentenceCase(worker.lastname)
-                    // newJson.push({ 
-                    //     //"Month": month, 
-                    //     //"Schedule": sf.toSentenceCase(json.type), 
-                    //     "Week Starting": moment(item.datestart).format('DD-MMM-YYYY'), 
-                    //     "Week Ending": moment(item.dateend).format('DD-MMM-YYYY'), 
-                    //     "Name": sf.toSentenceCase(worker.firstname) + ' ' + sf.toSentenceCase(worker.lastname)
-                    // });
                 });
 
                 newJson.push(newObj);
             }
         }
-
-        // itemsGroupedByWeek.forEach(item => {
-        //     var worker = item.workers[0];
-        //     item.forEach(element => {
-                
-        //     });
-        //     newJson.push({ 
-        //         //"Month": month, 
-        //         //"Schedule": sf.toSentenceCase(json.type), 
-        //         "Week Starting": moment(item.datestart).format('DD-MMM-YYYY'), 
-        //         "Week Ending": moment(item.dateend).format('DD-MMM-YYYY'), 
-        //         "Name": sf.toSentenceCase(worker.firstname) + ' ' + sf.toSentenceCase(worker.lastname)
-        //     });
-        // });
 
         var fields = {}
         for (var property in newObj) {

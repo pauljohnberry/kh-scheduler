@@ -26,10 +26,10 @@ const { addWorker, getWorkersByName, listWorkers, setWorkerRole, setWorkerTimeOf
 // });
 // addRoleUsingTerminal();
 
-//newScheduleUsingTerminal(3);
+//newScheduleUsingTerminal("april");
 //newScheduleUsingTerminal();
 
-exportSchedulesUsingTerminal(3);
+exportSchedulesUsingTerminal("april");
 
 //addWorkerUsingTerminal();
 // addWorkerRoleUsingTerminal(i);

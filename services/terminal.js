@@ -12,7 +12,6 @@ const moment = require('moment');
  * @function  [addWorkerRoleUsingTerminal]
  */
 addWorkerRoleUsingTerminal = function (workerId) {
-
     var gwr = function (allRoles) {
       wid = workerId;
       return new Promise((resolve, reject) => {
@@ -132,7 +131,9 @@ addTimeOffUsingTerminal = function (id) {
 }
 
 newScheduleUsingTerminal = function (month) {
-    newSchedule(month).then((response) => {
+    var numericalMonth = moment().month(month).format("M");
+    numericalMonth--;
+    newSchedule(numericalMonth).then((response) => {
         console.info(response);
     });
 }
@@ -169,9 +170,11 @@ getCurrentScheduleUsingTerminal = function () {
 }
 
 exportSchedulesUsingTerminal = function (month) {
-    getSchedules(month).then((response) => {
+    var numericalMonth = moment().month(month).format("M");
+    numericalMonth--;
+    getSchedules(numericalMonth).then((response) => {
         //var m = moment().month(month).add(1, 'months');
-        var formattedMonth = moment().month(month).format('MMMM');
+        var formattedMonth = moment().month(numericalMonth).format('MMMM');
         if (response === false) {
             console.info("No schedule found");
         }

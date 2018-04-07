@@ -56,8 +56,8 @@ const newSchedule = (monthToSchedule) => {
             // process week by week
             weekdays.forEach(wd => {
               
-              const weekStart = wd;
-              const weekEnd = moment(weekStart, "DD-MM-YYYY").add(6, 'days');
+              const dateStart = wd;
+              const dateEnd = moment(dateStart, "DD-MM-YYYY").add(6, 'days');
               // loop roles
               roles.forEach(r => {
 
@@ -97,22 +97,22 @@ const newSchedule = (monthToSchedule) => {
 
                 for (let index = 0; index < r.workersneeded; index++) {
                   // find workers assigned to the role 
-                  var firstWorkerInRole = determineFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds);
+                  var firstWorkerInRole = determineFirstWorkerInThisRole({ role: schedule.type, week: wn, dateStart: dateStart, dateEnd: dateEnd, wn: wn } , sortedWorkers, excludedIds);
 
                   if (firstWorkerInRole.length > 0) {
                     // take from array
                     var worker = firstWorkerInRole[0];
   
-                    // skip if on holiday
-                    while (isOnHoliday(worker, weekStart, weekEnd)) {
-                      excludedIds.push({ id: worker.id, role: r.role, week: wn });
-                      worker = determineFirstWorkerInThisRole({ role: schedule.type, week: wn } , sortedWorkers, excludedIds);
-                      var worker = worker[0];
-                    }
+                    // // skip if on holiday
+                    // while (isOnHoliday(worker, dateStart, dateEnd)) {
+                    //   excludedIds.push({ id: worker.id, role: r.role, week: wn });
+                    //   worker = determineFirstWorkerInThisRole({ role: schedule.type, week: wn, dateStart: dateStart, dateEnd: dateEnd } , sortedWorkers, excludedIds);
+                    //   var worker = worker[0];
+                    // }
   
                     var scheduleItem = new db.sim.scheduleItem();
-                    scheduleItem.datestart = weekStart;
-                    scheduleItem.dateend = weekEnd;
+                    scheduleItem.datestart = dateStart;
+                    scheduleItem.dateend = dateEnd;
                     scheduleItem.workers.push(worker);
                     schedule.items.push(scheduleItem);
   
@@ -224,6 +224,11 @@ function getFirstWorkerInThisRole(keys, workers, excludedIds, exclusionLevel){
       role = worker.roles[r];
       if (role.role === keys.role) {
 
+        // TODO - check holidays here and then exclue skip if on holiday
+        if (isOnHoliday(worker, keys.dateStart, keys.dateEnd)) {
+          excludedIds.push({ id: worker.id, role: r.role, week: keys.wn });
+          continue;
+        }
 
         // if (random) {
         //   var rnd = Math.floor(Math.random() * (shuffledWorkers.length - 1)) + 1 ;
